@@ -26,15 +26,15 @@ db_name = "sample_db"
 db = client[db_name]
 
 items = db["items"]
+items.delete_many({}) # incase you run the script multiple times
 
-JSON_FILE_NAME = "sample.jsonl" # this will be replaced with the LARGE DATA "meta_Amazon_Fashion.jsonl" 
 
 # we are going to insert in batches to increase performance making it scale better when we do it with our large dataset
-size_of_batch = 2000
+size_of_batch = 1000
 batch = []
 counter = 0
 
-with open(JSON_FILE_NAME) as file: 
+with open("sample.jsonl") as file: 
     for l in file:  # line of data in file 
         line_of_data = json.loads(l) # read data line by line  
         batch.append(line_of_data) #add to batch
@@ -52,6 +52,7 @@ if len(batch) > 0: # if the batch had less items than the size of batch and were
 
 all_items = items.count_documents({}) 
 
+print(all_items)
 #test if all sample documents are stored in db
 if all_items == 6000:
     print("Test 1 passed")
