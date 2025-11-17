@@ -2,23 +2,12 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, when, concat_ws, lit, array, size
 from pyspark.ml.feature import HashingTF, IDF, Tokenizer, StopWordsRemover
 from pyspark.ml.linalg import DenseVector, SparseVector
+import sys
 
 # Create SparkSession
 spark = SparkSession.builder.master("local").appName("Buy_Together_Recommender").getOrCreate()
 
-# Read JSONL file - try Spark_Sample.jsonl first, fallback to sample.jsonl
-try:
-    df = spark.read.json("Spark_Sample.jsonl").repartition(20)
-    print("Loaded Spark_Sample.jsonl")
-except:
-    # If Spark_Sample.jsonl doesn't exist, read sample.jsonl and add item_id
-    df = spark.read.json("sample.jsonl").repartition(20)
-    # Add item_id using row_number
-    from pyspark.sql.window import Window
-    from pyspark.sql.functions import row_number
-    window = Window.orderBy("parent_asin")
-    df = df.withColumn("item_id", row_number().over(window))
-    print("Loaded sample.jsonl and added item_id")
+df = spark.read.json("Spark_Sample.jsonl").repartition(20)  
 
 df.printSchema()
 total_items = df.count()
@@ -190,20 +179,28 @@ def get_recommendations(item_id, dataframe, top_n=5):
     
     # Sort by similarity score (descending) and return top N
     recommendations.sort(key=lambda x: x['similarity_score'], reverse=True)
-    return recommendations[:top_n]
+    top_recommendations = recommendations[:top_n]
+    
+    # Ensure we return exactly top_n items if available
+    if len(top_recommendations) < top_n and len(recommendations) > 0:
+        print(f"Warning: Only {len(top_recommendations)} recommendations found (requested {top_n})")
+    
+    return top_recommendations
 
 def display_recommendations(recommendations):
     """
-    Display recommendations in a formatted way
+    Display recommendations in a formatted way - always shows top 5 if available
     """
     if len(recommendations) == 0:
         print("No recommendations found.")
         return
     
+    num_recommendations = len(recommendations)
     print(f"\n{'='*80}")
-    print("TOP 5 RECOMMENDED ITEMS TO BUY TOGETHER:")
+    print(f"TOP {num_recommendations} RECOMMENDED ITEMS TO BUY TOGETHER:")
     print(f"{'='*80}\n")
     
+    # Display all recommendations (should be 5, but display whatever we have)
     for i, rec in enumerate(recommendations, 1):
         print(f"{i}. {rec['title']}")
         print(f"   Similarity Score: {rec['similarity_score']:.4f}")
@@ -215,6 +212,10 @@ def display_recommendations(recommendations):
         else:
             print(f"   Price: N/A")
         print()
+    
+    # Confirm we got the expected number
+    if num_recommendations < 5:
+        print(f"Note: Only {num_recommendations} recommendations available (requested 5)")
 
 # User interface
 print("\n" + "="*80)
@@ -223,10 +224,21 @@ print("="*80)
 print(f"Enter an item_id between 1 and {total_items} to get recommendations")
 print("="*80 + "\n")
 
-item_id = int(input(f"Enter item_id (1-{total_items}): "))
-
-while item_id < 1 or item_id > total_items:
-    item_id = int(input(f"Please enter a valid item_id between 1 and {total_items}: "))
+# Check if item_id was provided as command-line argument
+if len(sys.argv) > 1:
+    try:
+        item_id = int(sys.argv[1])
+        if item_id < 1 or item_id > total_items:
+            print(f"Error: item_id must be between 1 and {total_items}")
+            sys.exit(1)
+        print(f"Using item_id from command line: {item_id}\n")
+    except ValueError:
+        print("Error: item_id must be a number")
+        sys.exit(1)
+else:
+    item_id = int(input(f"Enter item_id (1-{total_items}): "))
+    while item_id < 1 or item_id > total_items:
+        item_id = int(input(f"Please enter a valid item_id between 1 and {total_items}: "))
 
 # Get recommendations
 recommendations = get_recommendations(item_id, df_tfidf, top_n=5)
