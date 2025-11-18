@@ -20,17 +20,14 @@ for i in range(5):
     purchased_items.append(num) 
 
    
-def store_recommendation(purchased_item,dataframe):
+def store_recommendation(purchased_item_lst,dataframe):
     print("Finding Store Recommendations: \n")
     #dict to track the stores score
     store = set()
 
-    for item_id in purchased_item:
+    for i in range(5):
 
-        purchased_item = dataframe.filter(dataframe.item_id == purchased_item).first()#access each purchased item
-
-        if not purchased_item:
-            continue
+        purchased_item = dataframe.filter(dataframe.item_id == purchased_item_lst[i]).first()
 
         #print current purchased item along with the store of the item
         title = purchased_item["title"]
@@ -42,10 +39,10 @@ def store_recommendation(purchased_item,dataframe):
 
         store.add(store_name)
 
-        print("recommended stores based on your purchase history: ")
+    print("recommended stores based on your purchase history: ")
 
-        for s in store:
-            print(s)
+    for s in store:
+        print(s)
 
 store_recommendation(purchased_items,df)
 
