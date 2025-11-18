@@ -22,17 +22,14 @@ for i in range(5):
 
    
    
-def store_recommendation(purchased_item,dataframe):
+def store_recommendation(purchased_item_lst,dataframe):
     print("Finding Store Recommendations: \n")
     #dict to track the stores score
     store = set()
 
-    for item_id in purchased_item:
+    for i in range(5):
 
-        purchased_item = dataframe.filter(dataframe.item_id == purchased_item).first()#access each purchased item
-
-        if not purchased_item:
-            continue
+        purchased_item = dataframe.filter(dataframe.item_id == purchased_item_lst[i]).first()
 
         #print current purchased item along with the store of the item
         title = purchased_item["title"]
@@ -44,10 +41,10 @@ def store_recommendation(purchased_item,dataframe):
 
         store.add(store_name)
 
-        print("recommended stores based on your purchase history: ")
+    print("recommended stores based on your purchase history: ")
 
-        for s in store:
-            print(s)
+    for s in store:
+        print(s)
 
 
 def price_recommendation(purchased_item_lst,dataframe):
@@ -91,7 +88,7 @@ def price_recommendation(purchased_item_lst,dataframe):
 
 
 
-def randomRecommender(purchased_items,df):
+def Recommender(purchased_items,df):
     print("Choose your recommendation type:")
     print("1 = Price Recommendation")
     print("2 = Frequently Bought Together Recommendation")
@@ -111,6 +108,6 @@ def randomRecommender(purchased_items,df):
     elif choice == 3:
         store_recommendation(purchased_items,df)
 
-randomRecommender(purchased_items,df)
+Recommender(purchased_items,df)
 
 spark.stop()
