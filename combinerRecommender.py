@@ -1,6 +1,7 @@
 from logging import config
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
+from dearpygui import dearpygui as dpg # our UI framework
 
 spark = SparkSession.builder.master("local").appName("Spark_Recommender").getOrCreate()
 
@@ -26,25 +27,38 @@ def store_recommendation(purchased_item_lst,dataframe):
     print("Finding Store Recommendations: \n")
     #dict to track the stores score
     store = set()
-
+    recommendation_list = []
     for i in range(5):
 
         purchased_item = dataframe.filter(dataframe.item_id == purchased_item_lst[i]).first()
 
         #print current purchased item along with the store of the item
         title = purchased_item["title"]
-        print(f"Item: {title}")
+        print(f"Item: {title}\n")
         store_name = purchased_item["store"]
-        print (f"Store:{store_name}")
+        print (f"Store:{store_name}\n")
         category = purchased_item["main_category"]
-        print(f"Category: {category}")
+        print(f"Category: {category}\n\n")
+        purchased_item_id = purchased_item["item_id"]
 
-        store.add(store_name)
+       
 
-    print("recommended stores based on your purchase history: ")
-
-    for s in store:
-        print(s)
+        if store_name != None: 
+            recommended_item= dataframe.filter((dataframe.store == store_name)&(dataframe.item_id != purchased_item_id)).first()
+            if recommended_item != None:
+                recommendation_list.append(recommended_item)
+            
+    
+    #if some items were added to recommend
+    if len(recommendation_list) > 0:
+        print("\nSome recommened items from similar stores are: \n")
+        for ri in recommendation_list: 
+        
+            print(ri["title"])
+            recommeneded_item_store = ri["store"]
+            print(f"Store: {recommeneded_item_store}" +"\n\n")
+    else: 
+        print("Sorry no items in similar stores were found")
 
 
 def price_recommendation(purchased_item_lst,dataframe):
@@ -109,5 +123,10 @@ def Recommender(purchased_items,df):
         store_recommendation(purchased_items,df)
 
 Recommender(purchased_items,df)
+
+
+
+
+
 
 spark.stop()
