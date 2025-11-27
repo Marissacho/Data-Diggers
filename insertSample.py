@@ -34,7 +34,7 @@ size_of_batch = 1000
 batch = []
 counter = 0
 
-with open("sample.jsonl") as file: 
+with open("meta_Amazon_Fashion.jsonl") as file: 
     for l in file:  # line of data in file 
         line_of_data = json.loads(l) # read data line by line  
         batch.append(line_of_data) #add to batch
@@ -54,15 +54,16 @@ all_items = items.count_documents({})
 
 print(all_items)
 #test if all sample documents are stored in db
-if all_items == 6000:
+if all_items == 826108:
     print("Test 1 passed")
 else:
-    raise ImportError ("sample.json did not import successfully")
+    raise ImportError ("meta_Amazon_Fashion.jsonl did not import successfully")
 
-#drop the videos and images feilds
+#drop the not needed feilds
 items.update_many({}, {"$unset" : {"videos" : ""}}) 
 items.update_many({}, {"$unset" : {"images" : ""}})
 items.update_many({}, {"$unset" : {"details" : ""}})
+items.update_many({}, {"$unset" : {"main_category" : ""}}) # we already know the main category is 
 
 
 #We need to assign a unique item_id to each item in an efficent way
