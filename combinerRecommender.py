@@ -10,7 +10,6 @@ df.printSchema()
 
 total_items = df.count() 
 
-
 purchased_items = [] # this is where the purchased items are in 
 for i in range(5):
     #get user input for the items they have in their purchase history
@@ -21,7 +20,6 @@ for i in range(5):
     
     purchased_items.append(num) # purchased item list gets item added
 
-   
    
 def store_recommendation(purchased_item_lst,dataframe):
     print("Finding Store Recommendations: \n")
@@ -36,9 +34,7 @@ def store_recommendation(purchased_item_lst,dataframe):
         title = purchased_item["title"]
         print(f"Item: {title}\n")
         store_name = purchased_item["store"]
-        print (f"Store:{store_name}\n")
-        category = purchased_item["main_category"]
-        print(f"Category: {category}\n\n")
+        print (f"Store:{store_name}\n\n")
         purchased_item_id = purchased_item["item_id"]
 
        
@@ -51,14 +47,14 @@ def store_recommendation(purchased_item_lst,dataframe):
     
     #if some items were added to recommend
     if len(recommendation_list) > 0:
-        print("\nSome recommened items from similar stores are: \n")
+        print("\nSome recommended items from stores you have shopped at are: \n")
         for ri in recommendation_list: 
         
             print(ri["title"])
             recommeneded_item_store = ri["store"]
             print(f"Store: {recommeneded_item_store}" +"\n\n")
     else: 
-        print("Sorry no items in similar stores were found")
+        print("Sorry no recommended items from stores you have shopped at were found")
 
 
 def price_recommendation(purchased_item_lst,dataframe):
@@ -71,6 +67,8 @@ def price_recommendation(purchased_item_lst,dataframe):
         #print current purchased item along with price of that item
         print(purchased_item["title"])
         price = purchased_item["price"]
+        purchased_item_id = purchased_item["item_id"]
+
         if purchased_item["price"] != None: 
             print(f"Price: {price}\n\n")
         else: 
@@ -85,7 +83,7 @@ def price_recommendation(purchased_item_lst,dataframe):
             else:
                 lowerBound_of_price= 0
             #filter for an item within the range of upper and lower bound
-            recommendation_item = dataframe.filter((dataframe.price <= upperBound_of_price) & (dataframe.price >= lowerBound_of_price)).first()
+            recommendation_item = dataframe.filter((dataframe.price <= upperBound_of_price) & (dataframe.price >= lowerBound_of_price)&(dataframe.item_id != purchased_item_id)).first()
             recommendation_list.append(recommendation_item)
 
     #if some items were added to recommend
@@ -102,7 +100,7 @@ def price_recommendation(purchased_item_lst,dataframe):
 
 
 
-def Recommender(purchased_items,df):
+def Recommender(purchased_items_lst,df):
     print("Choose your recommendation type:")
     print("1 = Price Recommendation")
     print("2 = Frequently Bought Together Recommendation")
@@ -114,19 +112,16 @@ def Recommender(purchased_items,df):
         print("Please enter a valid input")
 
     if choice == 1:
-        price_recommendation(purchased_items,df)
+        price_recommendation(purchased_items_lst,df)
 
     #elif choice == 2:
     #buy_together_recommender(purchased_items,df)
 
     elif choice == 3:
-        store_recommendation(purchased_items,df)
+        store_recommendation(purchased_items_lst,df)
+
+
 
 Recommender(purchased_items,df)
-
-
-
-
-
 
 spark.stop()
