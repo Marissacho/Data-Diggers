@@ -1,3 +1,4 @@
+
 from logging import config
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, when, concat_ws, lit, array, size
@@ -200,7 +201,7 @@ def buy_together_recommender(purchased_item_lst, dataframe_tfidf):
         dpg.add_text(f"Store: {target_item['store']}\n")
         dpg.add_text(f"Rating: {target_item['average_rating']}\n\n")
         
-        all_items = dataframe_tfidf.filter(dataframe_tfidf.item_id != target_item_id).collect()
+        all_items = dataframe_tfidf.filter(dataframe_tfidf.item_id != target_item_id).limit(50000).collect()
         
         recommendations = []
         for item in all_items:
